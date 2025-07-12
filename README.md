@@ -1,25 +1,63 @@
-import tkinter as tk
 import random
 import string
+import datetime
 
-def generate_password():
-    length = int(length_entry.get())
-    characters = string.ascii_letters + string.digits + string.punctuation
-    password = ''.join(random.choice(characters) for _ in range(length))
-    result_label.config(text=f"Password: {password}")
+def get_user_options():
+    print("\n------ PASSWORD GENERATOR OPTIONS ------")
+    length = int(input("Enter desired password length: "))
+    use_letters = input("Include letters (y/n): ").lower() == 'y'
+    use_digits = input("Include digits (y/n): ").lower() == 'y'
+    use_symbols = input("Include symbols (y/n): ").lower() == 'y'
+    count = int(input("How many passwords to generate: "))
 
-# GUI Design
-root = tk.Tk()
-root.title("Password Generator")
-root.geometry("300x200")
-root.config(bg="lightblue")
+    return length, use_letters, use_digits, use_symbols, count
 
-tk.Label(root, text="Enter Length:", bg="lightblue", font=("Arial", 12)).pack(pady=5)
-length_entry = tk.Entry(root)
-length_entry.pack()
+def build_character_pool(letters, digits, symbols):
+    pool = ""
+    if letters:
+        pool += string.ascii_letters
+    if digits:
+        pool += string.digits
+    if symbols:
+        pool += string.punctuation
+    return pool
 
-tk.Button(root, text="Generate", command=generate_password).pack(pady=10)
-result_label = tk.Label(root, text="", bg="lightblue", font=("Arial", 12, "bold"))
-result_label.pack()
+def generate_password(length, pool):
+    if not pool:
+        return "No characters selected!"
+    return ''.join(random.choice(pool) for _ in range(length))
 
-root.mainloop()
+def save_passwords(password_list):
+    file_name = "saved_passwords.txt"
+    with open(file_name, "a") as file:
+        file.write("\n--- Generated on " + str(datetime.datetime.now()) + " ---\n")
+        for pw in password_list:
+            file.write(pw + "\n")
+    print(f"✅ {len(password_list)} password(s) saved to '{file_name}'.")
+
+def main():
+    try:
+        length, use_letters, use_digits, use_symbols, count = get_user_options()
+        if length <= 0 or count <= 0:
+            print("Length and count must be positive integers.")
+            return
+
+        character_pool = build_character_pool(use_letters, use_digits, use_symbols)
+        password_list = []
+
+        for i in range(count):
+            pw = generate_password(length, character_pool)
+            print(f"Password {i+1}: {pw}")
+            password_list.append(pw)
+
+        save_choice = input("Do you want to save the passwords? (y/n): ").lower()
+        if save_choice == 'y':
+            save_passwords(password_list)
+        else:
+            print("Passwords not saved.")
+
+    except ValueError:
+        print("Please enter valid numbers for length and count.")
+
+if __name__ == "__main__":
+    main()
